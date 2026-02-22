@@ -1,0 +1,35 @@
+{
+  "name": "shipday-cli",
+  "version": "0.1.0",
+  "description": "Ship your localhost to the world. One command.",
+  "bin": {
+    "shipday-cli": "bin/dawn-ship.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "start": "node bin/dawn-ship.js"
+  },
+  "dependencies": {
+    "localtunnel": "^2.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "localhost",
+    "tunnel",
+    "demo",
+    "ship",
+    "shipday",
+    "launch"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hearenzo/shipday.git"
+  },
+  "homepage": "https://shipday.dev"
+}
