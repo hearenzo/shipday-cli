@@ -65,32 +65,47 @@ async function main() {
     ui.blank();
     ui.step(2, "Security scan...");
 
-    const result = runSecurityScan(scanDir);
+    // Detect if running from a broad directory (home, root, etc.)
+    const resolvedDir = require("path").resolve(scanDir);
+    const homeDir = require("os").homedir();
+    const isProjectDir = require("fs").existsSync(require("path").join(resolvedDir, "package.json"))
+      || require("fs").existsSync(require("path").join(resolvedDir, "requirements.txt"))
+      || require("fs").existsSync(require("path").join(resolvedDir, "Cargo.toml"))
+      || require("fs").existsSync(require("path").join(resolvedDir, "go.mod"));
+    const isBroadDir = resolvedDir === homeDir || resolvedDir === "/" || resolvedDir === "/tmp";
 
-    if (result.clean) {
-      ui.success("No secrets or issues found");
+    if (isBroadDir && !isProjectDir) {
+      ui.warn("You're running from your home directory — scan skipped.");
+      ui.dim("  Run from your project folder for a proper security scan:");
+      ui.dim(`  $ cd your-project && npx shipday-cli ${port}`);
     } else {
-      for (const f of result.critical) {
-        ui.critical(`${f.message} in ${f.file}${f.line ? `:${f.line}` : ""}`);
-        if (f.preview) ui.dim(`    ${f.preview}`);
-      }
-      for (const f of result.high) {
-        ui.warn(`${f.message}`);
-        if (f.details) ui.dim(`    Variables: ${f.details.join(", ")}`);
-      }
-      for (const f of result.medium) {
-        ui.dim(`  ℹ ${f.message} (${f.file})`);
-      }
+      const result = runSecurityScan(scanDir);
 
-      if (result.critical.length > 0) {
-        ui.blank();
-        ui.warn(`${result.critical.length} critical issue(s) found. Your secrets may be exposed.`);
-        const shouldContinue = await askYesNo("  Continue anyway? (y/N): ");
-        if (!shouldContinue) {
+      if (result.clean) {
+        ui.success("No secrets or issues found");
+      } else {
+        for (const f of result.critical) {
+          ui.critical(`${f.message} in ${f.file}${f.line ? `:${f.line}` : ""}`);
+          if (f.preview) ui.dim(`    ${f.preview}`);
+        }
+        for (const f of result.high) {
+          ui.warn(`${f.message}`);
+          if (f.details) ui.dim(`    Variables: ${f.details.join(", ")}`);
+        }
+        for (const f of result.medium) {
+          ui.dim(`  ℹ ${f.message} (${f.file})`);
+        }
+
+        if (result.critical.length > 0) {
           ui.blank();
-          ui.info("Fix the issues above and try again.");
-          ui.blank();
-          process.exit(1);
+          ui.warn(`${result.critical.length} critical issue(s) found. Your secrets may be exposed.`);
+          const shouldContinue = await askYesNo("  Continue anyway? (y/N): ");
+          if (!shouldContinue) {
+            ui.blank();
+            ui.info("Fix the issues above and try again.");
+            ui.blank();
+            process.exit(1);
+          }
         }
       }
     }
