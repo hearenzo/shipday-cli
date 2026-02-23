@@ -1,6 +1,6 @@
 {
   "name": "shipday-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ship your localhost to the world. One command.",
   "bin": {
     "shipday-cli": "bin/dawn-ship.js"
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hearenzo/shipday.git"
+    "url": "git+https://github.com/hearenzo/shipday-cli.git"
   },
   "homepage": "https://shipday.dev"
 }
