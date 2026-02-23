@@ -1,6 +1,6 @@
 {
   "name": "shipday-cli",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Ship your localhost to the world. One command.",
   "bin": {
     "shipday-cli": "bin/dawn-ship.js"
@@ -13,7 +13,7 @@
     "start": "node bin/dawn-ship.js"
   },
   "dependencies": {
-    "localtunnel": "^2.0.2"
+    "cloudflared": "^0.7.1"
   },
   "engines": {
     "node": ">=18"

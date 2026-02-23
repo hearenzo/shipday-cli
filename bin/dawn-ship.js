@@ -116,11 +116,18 @@ async function main() {
   // Step 3: Create tunnel
   ui.blank();
   ui.step(3, "Creating tunnel...");
+  ui.dim("  First run downloads cloudflared (~30MB). Subsequent runs are instant.");
 
   let tunnel;
+  let tunnelUrl;
   try {
-    const localtunnel = require("localtunnel");
-    tunnel = await localtunnel({ port });
+    const { Tunnel } = require("cloudflared");
+    tunnel = Tunnel.quick(`http://localhost:${port}`);
+    tunnelUrl = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Tunnel creation timed out")), 30000);
+      tunnel.on("url", (url) => { clearTimeout(timeout); resolve(url); });
+      tunnel.on("error", (err) => { clearTimeout(timeout); reject(err); });
+    });
   } catch (err) {
     ui.error("Failed to create tunnel");
     ui.dim(`  ${err.message}`);
@@ -131,7 +138,6 @@ async function main() {
     process.exit(1);
   }
 
-  const tunnelUrl = tunnel.url;
   ui.success(`Live at ${ui.CYAN}${tunnelUrl}${ui.RESET}`);
 
   // Step 4: Ask project details (inline — no web form)
@@ -142,7 +148,7 @@ async function main() {
   const title = await ask("  What's it called? ");
   if (!title.trim()) {
     ui.error("Title is required");
-    tunnel.close();
+    tunnel.stop();
     process.exit(1);
   }
 
@@ -212,7 +218,7 @@ async function main() {
     ui.liveStatus(tunnelUrl, port, startTime);
   }, 1000);
 
-  tunnel.on("close", () => {
+  tunnel.on("exit", (code, signal) => {
     clearInterval(statusInterval);
     console.log("");
     ui.blank();
@@ -232,7 +238,7 @@ async function main() {
     console.log("");
     ui.blank();
     ui.info("Shutting down...");
-    tunnel.close();
+    tunnel.stop();
     ui.success("Done. Your localhost is private again.");
     ui.blank();
     process.exit(0);
